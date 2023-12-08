@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciamento de Dados</title>
+</head>
+<body>
+
+<h1>Gerenciamento de Dados</h1>
+
+<!-- Formulário para adicionar um novo registro -->
+<form id="addForm">
+    <h2>Adicionar Novo Registro</h2>
+    <label for="name">Nome:</label>
+    <input type="text" id="name" name="name" required>
+    <br>
+    <label for="age">Idade:</label>
+    <input type="number" id="age" name="age" required>
+    <br>
+    <label for="description">Descrição:</label>
+    <input type="text" id="description" name="description" required>
+    <br>
+    <label for="office">Cargo:</label>
+    <input type="text" id="office" name="office" required>
+    <br>
+
+    <button type="button" onclick="addRecord()">Adicionar</button>
+</form>
+
+<hr>
+
+<!-- Formulário para pesquisar um registro por ID 
+<form id="searchForm">
+    <h2>Pesquisar por ID</h2>
+    <label for="searchId">ID do Registro:</label>
+    <input type="number" id="searchId" name="searchId" required>
+    <br>
+    <button type="button" onclick="searchRecord()">Pesquisar</button>
+</form>
+
+<hr>
+
+ Lista de registros existentes 
+<h2>Registros Existentes</h2>
+<ul id="recordList"></ul>
+
+ Formulário para editar um registro existente 
+<form id="editForm">
+    <h2>Editar Registro</h2>
+    <label for="editName">Nome:</label>
+    <input type="text" id="editName" name="editName" required>
+    <br>
+    <label for="editAge">Idade:</label>
+    <input type="number" id="editAge" name="editAge" required>
+    <br>
+    <label for="editDescription">Descrição:</label>
+    <input type="text" id="editDescription" name="editDescription" required>
+    <br>
+    <input type="hidden" id="editId" name="editId">
+    <button type="button" onclick="editRecord()">Salvar Edição</button>
+</form>
+
+<hr>
+
+ Formulário para excluir um registro existente
+<form id="deleteForm">
+    <h2>Excluir Registro</h2>
+    <label for="deleteId">ID do Registro:</label>
+    <input type="number" id="deleteId" name="deleteId" required>
+    <br>
+    <button type="button" onclick="deleteRecord()">Excluir</button>
+</form>
+ -->
+<script>
+    // Funções JavaScript para interação com a API
+    async function addRecord() {
+        const formData = new FormData(document.getElementById('addForm'));
+
+        try {
+            const response = await fetch('http://localhost:9503/create', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams(formData),
+            });
+
+            if (response.ok) {
+                alert('Registro adicionado com sucesso!');
+                loadRecords();
+            } else {
+                alert('Erro ao adicionar o registro.');
+            }
+        } catch (error) {
+            console.error('Erro ao enviar a solicitação:', error);
+        }
+    }
+
+    async function searchRecord() {
+        const searchId = document.getElementById('searchId').value;
+
+        try {
+            const response = await fetch(`http://localhost:9503/${searchId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                displayRecords([data.data]);
+            } else {
+                alert('Registro não encontrado.');
+            }
+        } catch (error) {
+            console.error('Erro ao enviar a solicitação:', error);
+        }
+    }
+
+    async function loadRecords() {
+        try {
+            const response = await fetch('http://localhost:9503/', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                displayRecords(data.data);
+            } else {
+                console.error('Erro ao recuperar os registros.');
+            }
+        } catch (error) {
+            console.error('Erro ao enviar a solicitação:', error);
+        }
+    }
+
+    function displayRecords(records) {
+        const listElement = document.getElementById('recordList');
+        listElement.innerHTML = '';
+
+        records.forEach(record => {
+            const listItem = document.createElement('li');
+            listItem.textContent = `ID: ${record.id}, Nome: ${record.name}, Idade: ${record.age}, Descrição: ${record.description}`;
+            listItem.onclick = function() {
+                loadEditForm(record);
+            };
+            listElement.appendChild(listItem);
+        });
+    }
+
+    function loadEditForm(record) {
+        document.getElementById('editName').value = record.name;
+        document.getElementById('editAge').value = record.age;
+        document.getElementById('editDescription').value = record.description;
+        document.getElementById('editId').value = record.id;
+    }
+
+    async function editRecord() {
+        const formData = new FormData(document.getElementById('editForm'));
+
+        try {
+            const response = await fetch(`http://localhost:9503/update/${formData.get('editId')}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams(formData),
+            });
+
+            if (response.ok) {
+                alert('Registro editado com sucesso!');
+                loadRecords();
+            } else {
+                alert('Erro ao editar o registro.');
+            }
+        } catch (error) {
+            console.error('Erro ao enviar a solicitação:', error);
+        }
+    }
+
+    async function deleteRecord() {
+        const formData = new FormData(document.getElementById('deleteForm'));
+
+        try {
+            const response = await fetch(`http://localhost:9503/delete/${formData.get('deleteId')}`, {
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                mode: 'no-cors',
+            });
+
+            if (response.ok) {
+                alert('Registro excluído com sucesso!');
+                loadRecords();
+            } else {
+                alert('Erro ao excluir o registro.');
+            }
+        } catch (error) {
+            console.error('Erro ao enviar a solicitação:', error);
+        }
+    }
+
+    // Carrega os registros ao iniciar a página
+    loadRecords();
+</script>
+
+</body>
+</html>
