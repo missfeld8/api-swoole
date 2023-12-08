@@ -15,9 +15,9 @@ $server = new Server("localhost", 9503);
 
 $databaseConfig = [
     'host' => 'localhost',
-    'user' => 'mateus',
-    'password' => 'Mm@#91284025',
-    'database' => 'api_teste',
+    'user' => 'root',
+    'password' => 'password',
+    'database' => 'database',
 ];
 
 try {
@@ -33,7 +33,7 @@ try {
 
 $router = new Router();
 
-// Rota para a página inicial
+// página inicial
 $router->get('/', function (Request $request, Response $response) use ($db) {
     try {
         $response->header('Content-Type', 'application/json');
@@ -51,7 +51,7 @@ $router->get('/', function (Request $request, Response $response) use ($db) {
 });
 
 
-// Rota para arquivos estáticos 
+//arquivos estáticos 
 $router->get('/static/{file}', function (Request $request, Response $response) {
     $filename = '';
     if (isset($request->get['file'])) {
@@ -95,13 +95,11 @@ $router->post('/create', function (Request $request, Response $response) use ($d
 
 $router->put('/update/{id}', function (Request $request, Response $response, $id) use ($db) {
     try {
-        // Obtém o corpo da solicitação
         $body = $request->getBody()->__toString();
-
-        // Tenta decodificar os dados JSON
+        // decodificar os dados JSON
         $data = json_decode($body, true);
 
-        // Verifica se a decodificação foi bem-sucedida
+        //decodificação foi bem-sucedida
         if ($data === null && json_last_error() !== JSON_ERROR_NONE) {
             throw new Exception('Erro na decodificação JSON: ' . json_last_error_msg());
         }
@@ -136,53 +134,6 @@ $router->put('/update/{id}', function (Request $request, Response $response, $id
         $response->end();
     }
 });
-
-
-/*
-$router->put('/update/{id}', function (Request $request, Response $response, $id) use ($db) {
-    try {
-        // Obtém o corpo da solicitação
-        $body = $request->getBody()->__toString();
-        
-        // Tenta decodificar os dados JSON
-        $data = json_decode($body, true);
-
-        // Verifica se a decodificação foi bem-sucedida
-        if ($data === null && json_last_error() !== JSON_ERROR_NONE) {
-            throw new Exception('Erro na decodificação JSON: ' . json_last_error_msg());
-        }
-
-        // Adicione logs para depuração
-        if ($data === null) {
-            error_log('Erro na decodificação JSON: ' . json_last_error_msg());
-        }
-
-        // Verifica se os dados são válidos
-        if (isset($data['name'], $data['age'], $data['description'], $data['office'])) {
-            $updateQuery = $db->prepare("UPDATE api SET name = ?, age = ?, description = ?, office = ? WHERE id = ?");
-            $updateQuery->execute([$data['name'], $data['age'], $data['description'], $data['office'], $id]);
-
-            $response->header('Content-Type', 'application/json');
-            $response->write(json_encode(['status' => 200, 'message' => 'Registro atualizado com sucesso']));
-            $response->end();
-        } else {
-            $response->status(400); // Bad Request
-            $response->write(json_encode(['status' => 400, 'message' => 'Parâmetros inválidos']));
-            $response->end();
-        }
-    } catch (PDOException $e) {
-        $response->status(500);
-        $response->write("Erro no banco de dados: " . $e->getMessage());
-        $response->end();
-    } catch (Exception $e) {
-        $response->status(400); // Bad Request
-        $response->write("Erro na solicitação: " . $e->getMessage());
-        $response->end();
-    }
-});
-*/
-
-
 
 
 // excluir um registro
